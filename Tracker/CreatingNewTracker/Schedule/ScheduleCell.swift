@@ -14,7 +14,7 @@ protocol ScheduleCellDelegate: AnyObject {
 final class ScheduleCell: UITableViewCell {
     weak var delegate: ScheduleCellDelegate?
     
-    // MARK: UIElements
+    // MARK: - UIElements
     
     private lazy var scheduleLabel: UILabel = {
         let label = UILabel()
@@ -113,6 +113,3 @@ final class ScheduleCell: UITableViewCell {
         ])
     }
 }
-
-
-

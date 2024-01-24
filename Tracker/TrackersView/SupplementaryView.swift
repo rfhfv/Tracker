@@ -41,5 +41,3 @@ class SupplementaryView: UICollectionReusableView {
         ])
     }
 }
-
-

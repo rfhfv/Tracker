@@ -16,5 +16,3 @@ class StatisticsViewController: UIViewController {
         view.backgroundColor = .whiteDay
     }
 }
-
-

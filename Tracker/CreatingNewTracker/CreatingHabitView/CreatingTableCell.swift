@@ -9,7 +9,7 @@ import UIKit
 
 final class CreatingTableCell: UITableViewCell {
     
-    // MARK: - UIElements
+    // MARK: - UiElements
     
     private let stackView: UIStackView = {
         let stackView = UIStackView()
@@ -37,6 +37,7 @@ final class CreatingTableCell: UITableViewCell {
     }()
     
     // MARK: - Lifecycle
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.selectionStyle = .none
@@ -55,7 +56,7 @@ final class CreatingTableCell: UITableViewCell {
     func configureCell(title: String, subTitle: String) {
         categoryLabel.text = title
         subTitleLabel.text = subTitle
-        subTitleLabel.isHidden = subTitle.isEmpty ? true: false
+        subTitleLabel.isHidden = subTitle.isEmpty ? true : false
     }
     
     // MARK: - Private methods
@@ -75,5 +76,3 @@ final class CreatingTableCell: UITableViewCell {
         ])
     }
 }
-
-

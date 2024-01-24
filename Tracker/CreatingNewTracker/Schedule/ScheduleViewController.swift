@@ -157,10 +157,7 @@ extension ScheduleViewController: UITableViewDataSource {
         cell.delegate = self
         let day: String = DaysOfTheWeek.allCases[indexPath.row].rawValue
         let isSwitchOn = dataStorege.loadDaysInAWeek().contains(day)
-        //cell.configureCell(with: day, isSwitchOn: isSwitchOn)
         cell.configureCell(with: day, isSwitchOn: isSwitchOn, cellIndex: indexPath.row, numberOfLines: DaysOfTheWeek.allCases.count)
         return cell
     }
 }
-
-

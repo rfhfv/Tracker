@@ -24,5 +24,3 @@ struct CollectionSettings {
         self.paddingWidth = leftDistance + rightDistance + CGFloat(cellCount - 1) * cellSpacing
     }
 }
-
-

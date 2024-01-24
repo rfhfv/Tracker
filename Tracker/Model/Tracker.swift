@@ -14,5 +14,3 @@ struct Tracker {
     let emoji: String
     let dateEvents: [Int]?
 }
-
-

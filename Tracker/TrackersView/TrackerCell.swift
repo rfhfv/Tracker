@@ -160,5 +160,3 @@ final class TrackerCell: UICollectionViewCell {
         ])
     }
 }
-
-

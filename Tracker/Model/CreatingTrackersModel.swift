@@ -11,6 +11,3 @@ struct CreatingTrackersModel {
     let titleLabelText: String
     var subTitleLabel: String
 }
-
-
-

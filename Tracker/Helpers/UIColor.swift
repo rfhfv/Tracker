@@ -40,7 +40,3 @@ extension UIColor {
         UIColor(named: "Color selection 18") ?? #colorLiteral(red: 0.1919171214, green: 0.8337991834, blue: 0.4192006886, alpha: 1)
     ]
 }
-
-
-
-

@@ -10,11 +10,13 @@ import UIKit
 // MARK: - TrackersViewController
 
 final class TrackersViewController: UIViewController {
+    private let trackerCategoryStore = TrackerCategoryStore()
+    private let trackerRecordStore = TrackerRecordStore()
     private var filteredCategoriesBySearch: [TrackerCategory] = []
     private var filteredCategoriesByDate: [TrackerCategory] = []
     private var visibleCategories: [TrackerCategory] = []
-    private var completedTrackers: Set<TrackerRecord> = []
-    private var currentDate: Date = Date()
+    private var completedTrackers: [TrackerRecord] = []
+    private var selectedDate: Date = Date()
     private var categories: [TrackerCategory] = [] {
         didSet {
             visibleCategories = categories
@@ -28,13 +30,14 @@ final class TrackersViewController: UIViewController {
         cellSpacing: 9
     )
     
-    // MARK: - UIElements
+    // MARK: - UiElements
     
     private let navigationBar = UINavigationBar()
     
     private var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .whiteDay
         collectionView.contentInset = UIEdgeInsets(top: .zero, left: .zero, bottom: .zero, right: .zero)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
@@ -53,6 +56,7 @@ final class TrackersViewController: UIViewController {
     
     private lazy var datePicker: UIDatePicker = {
         let datePicker = UIDatePicker()
+        datePicker.backgroundColor = .backgroundDay
         datePicker.preferredDatePickerStyle = .compact
         datePicker.datePickerMode = .date
         datePicker.locale = Locale(identifier: "ru_RU")
@@ -66,6 +70,7 @@ final class TrackersViewController: UIViewController {
     private lazy var trackerLabel: UILabel = {
         let trackerLabel = UILabel()
         trackerLabel.text = "Трекеры"
+        trackerLabel.textColor = .blackDay
         trackerLabel.font = .boldSystemFont(ofSize: 34)
         trackerLabel.translatesAutoresizingMaskIntoConstraints = false
         return trackerLabel
@@ -76,6 +81,7 @@ final class TrackersViewController: UIViewController {
         trackersSearchBar.layer.masksToBounds = true
         trackersSearchBar.searchBarStyle = .minimal
         trackersSearchBar.translatesAutoresizingMaskIntoConstraints = false
+        trackersSearchBar.barTintColor = .gray
         trackersSearchBar.placeholder = "Поиск"
         trackersSearchBar.delegate = self
         return trackersSearchBar
@@ -91,6 +97,7 @@ final class TrackersViewController: UIViewController {
     
     private lazy var searchMainPlaceholderStub: UILabel = {
         let searchSpacePlaceholderStack = UILabel()
+        searchSpacePlaceholderStack.textColor = .blackDay
         searchSpacePlaceholderStack.font = .systemFont(ofSize: 12, weight: .medium)
         searchSpacePlaceholderStack.translatesAutoresizingMaskIntoConstraints = false
         return searchSpacePlaceholderStack
@@ -121,7 +128,10 @@ final class TrackersViewController: UIViewController {
         configConstraints()
         configNavigationBar()
         configCollectionView()
+        try? fetchCategory()
         checkingForActiveTrackers()
+        updateVisibleCategories()
+        try? fetchRecord()
     }
     
     // MARK: - Actions
@@ -136,12 +146,12 @@ final class TrackersViewController: UIViewController {
     
     @objc
     private func filterByDate() {
-        currentDate = datePicker.date
+        selectedDate = datePicker.date
         updateVisibleCategories()
         dismiss(animated: true)
     }
     
-    // MARK: - Private methods
+    //MARK: - Private methods
     
     private func checkingForActiveTrackers() {
         if !visibleCategories.isEmpty {
@@ -176,7 +186,7 @@ final class TrackersViewController: UIViewController {
         } else {
             filteredCategoriesBySearch = categories
         }
-        let dayOfWeek = currentDate.dayOfWeek()
+        let dayOfWeek = selectedDate.dayOfWeek()
         filteredCategoriesByDate = filteredCategoriesBySearch.map { categories in
             let filter = categories.trackers.filter {
                 $0.dateEvents?.contains(dayOfWeek) ?? true
@@ -256,12 +266,13 @@ extension TrackersViewController: UICollectionViewDataSource {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCell", for: indexPath) as? TrackerCell else { return UICollectionViewCell() }
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
         let daysCount = completedTrackers.filter { $0.id == tracker.id }.count
-        let IsCompleted = completedTrackers.contains {$0.id == tracker.id && сomparOfTrackerDates(date1: $0.date, date2: currentDate)}
+        let IsCompleted = completedTrackers.contains {$0.id == tracker.id && сomparOfTrackerDates(date1: $0.date, date2: selectedDate)}
         cell.delegate = self
         cell.setupCell(tracker: tracker)
         cell.completeTracker(days: daysCount, completed: IsCompleted)
         return cell
     }
+    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return visibleCategories.count
     }
@@ -373,14 +384,10 @@ extension TrackersViewController: UISearchBarDelegate {
 // MARK: - TrackerCreationDelegate
 
 extension TrackersViewController: TrackerCreationDelegate {
-    func didCreateTracker(_ tracker: Tracker, category: TrackerCategory) {
-        if let index = categories.firstIndex(where: { $0.title == category.title }) {
-            let updatedTrackers = categories[index].trackers + [tracker]
-            let updatedCategory = TrackerCategory(title: category.title, trackers: updatedTrackers)
-            categories[index] = updatedCategory
-        } else {
-            categories.append(category)
-        }
+    
+    func didCreateTracker(_ tracker: Tracker, category: String) {
+        try? createCategoryAndTracker(ctracker: tracker, with: category)
+        try? fetchCategory()
         checkingForActiveTrackers()
         updateVisibleCategories()
         collectionView.reloadData()
@@ -391,21 +398,84 @@ extension TrackersViewController: TrackerCreationDelegate {
 
 extension TrackersViewController: TrackerCellDelegate {
     func trackerCompleted(id: UUID) {
-        let record = TrackerRecord(id: id, date: currentDate)
-        if currentDate <= Date() {
-            if !completedTrackers.contains(where: { $0.id == id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }) {
-                completedTrackers.insert(record)
+        let record = TrackerRecord(id: id, date: selectedDate)
+        if selectedDate <= Date() {
+            if !completedTrackers.contains(where: { $0.id == id && Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }) {
+                try? createRecord(record: record)
             }
             collectionView.reloadData()
         }
     }
     
     func trackerNotCompleted(id: UUID) {
-        if let index = completedTrackers.firstIndex(where: { $0.id == id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }) {
-            completedTrackers.remove(at: index)
+        if let index = completedTrackers.firstIndex(where: { $0.id == id && Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }) {
+            try? deleteRecord(atIndex: index)
         }
+        try? fetchRecord()
         collectionView.reloadData()
     }
 }
 
+// MARK: - CategoryStore
 
+extension TrackersViewController {
+    private func fetchCategory() throws {
+        do {
+            let coreDataCategories = try trackerCategoryStore.fetchAllCategories()
+            categories = try coreDataCategories.compactMap { coreDataCategory in
+                return try trackerCategoryStore.decodingCategory(from: coreDataCategory)
+            }
+        } catch {
+            throw StoreError.failedReading
+        }
+    }
+    
+    private func createCategoryAndTracker(ctracker: Tracker, with titleCategory: String) throws {
+        do {
+            try trackerCategoryStore.createCategoryAndTracker(tracker: ctracker, with: titleCategory)
+        } catch {
+            throw StoreError.failedToWrite
+        }
+    }
+}
+
+// MARK: - RecordStore
+
+extension TrackersViewController {
+    private func fetchRecord() throws {
+        do {
+            completedTrackers = try trackerRecordStore.fetchRecords()
+            print(completedTrackers)
+        } catch {
+            throw StoreError.failedReading
+        }
+    }
+    
+    private func createRecord(record: TrackerRecord) throws {
+        do {
+            try trackerRecordStore.addNewRecord(from: record)
+            try fetchRecord()
+        } catch {
+            throw StoreError.failedToWrite
+        }
+    }
+    
+    private func deleteRecord(atIndex index: Int) throws {
+        let record = completedTrackers[index]
+        print("record ---- \(record)")
+        do {
+            try trackerRecordStore.deleteTrackerRecord(trackerRecord: record)
+            try fetchRecord()
+        } catch {
+            throw StoreError.failedActoionDelete
+        }
+    }
+}
+
+// MARK: - TrackerStoreDelegate
+
+extension TrackersViewController: TrackerCategoryStoreDelegate {
+    func didUpdateData(in store: TrackerCategoryStore) {
+        collectionView.reloadData()
+    }
+}

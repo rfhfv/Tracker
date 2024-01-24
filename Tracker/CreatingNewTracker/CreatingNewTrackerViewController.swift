@@ -7,12 +7,13 @@
 
 import UIKit
 
-// MARK: - CreatingNewTrackerViewController
+import UIKit
 
+// MARK: - CreatingNewTrackerViewController
 final class CreatingNewTrackerViewController: UIViewController {
     weak var delegate: TrackerCreationDelegate?
     
-    //MARK: - UiElements
+    // MARK: - UiElements
     
     private lazy var creatingTrackerLabel: UILabel = {
         let trackerLabel = UILabel()
@@ -63,7 +64,7 @@ final class CreatingNewTrackerViewController: UIViewController {
         present(navigationController, animated: true)
     }
     
-    //MARK: - Private methods
+    // MARK: - Private methods
     
     private func configViews() {
         view.backgroundColor = .whiteDay
@@ -100,5 +101,3 @@ final class CreatingNewTrackerViewController: UIViewController {
         return button
     }
 }
-
-

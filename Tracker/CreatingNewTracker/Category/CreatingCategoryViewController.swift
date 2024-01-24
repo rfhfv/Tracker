@@ -12,7 +12,7 @@ final class CreatingCategoryViewController: UIViewController {
     private let categoryViewController = CategoryViewController()
     private let characterLimitInField = 38
     
-    // MARK: - UiElements
+    //MARK: - UiElements
     
     private lazy var habitLabel: UILabel = {
         let label = UILabel()
@@ -75,7 +75,7 @@ final class CreatingCategoryViewController: UIViewController {
         }
     }
     
-    //MARK: - Private methods
+    // MARK: - Private methods
     
     private func updateCreatingButton() {
         creatingCategoryButton.isEnabled = nameTrackerTextField.text?.isEmpty == false
@@ -117,6 +117,3 @@ extension CreatingCategoryViewController: UITextFieldDelegate {
         return newLength <= characterLimitInField
     }
 }
-
-
-
