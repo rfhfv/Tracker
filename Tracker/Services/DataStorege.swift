@@ -14,6 +14,16 @@ final class DataStorege {
     private let indexPathForCheckmark = "IndexPathForCheckmark"
     private let daysInAWeek = "DaysInAWeek"
     private let trackerKey = "TrackerKey"
+    private let firstLaunchKey = "firstLaunchApplication"
+    
+    var firstLaunchApplication: Bool {
+        get {
+            return defaults.value(forKey: firstLaunchKey) as? Bool ?? false
+        }
+        set {
+            defaults.set(newValue, forKey: firstLaunchKey)
+        }
+    }
 }
 
 // MARK: - CategoryViewController

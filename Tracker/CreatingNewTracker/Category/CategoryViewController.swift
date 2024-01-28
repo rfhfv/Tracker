@@ -9,22 +9,27 @@ import UIKit
 
 // MARK: - CategoryViewDelegate
 
-protocol CategoryViewDelegate: AnyObject {
+protocol CategoryViewModelDelegate: AnyObject {
     func updateData(nameCategory: String)
 }
 
 // MARK: - CategoryViewController
 
 final class CategoryViewController: UIViewController {
-    weak var delegateHabbit: CreatingHabitViewControllerDelegate?
-    weak var delegateIrregular: CreatingIrregularEventViewControllerDelegate?
-    private let dataStorege = DataStorege.shared
-    private var category = [String]()
-    private let trackerCategoryStore = TrackerCategoryStore()
+    var viewModel: CategoryViewModel?
     
     // MARK: - UiElements
     
-    private var tableView: UITableView = .init()
+    private var tableView: UITableView = {
+        let tableView = UITableView()
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CategoryCell")
+        tableView.layer.masksToBounds = true
+        tableView.layer.cornerRadius = 16
+        tableView.backgroundColor = .none
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        return tableView
+    }()
     
     private lazy var habitLabel: UILabel = {
         let label = UILabel()
@@ -38,6 +43,7 @@ final class CategoryViewController: UIViewController {
     private lazy var mainStarImageStub: UIImageView = {
         let image = UIImageView(image: UIImage(named: "starIcon"))
         image.clipsToBounds = true
+        image.isHidden = true
         image.contentMode = .scaleAspectFill
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
@@ -48,6 +54,7 @@ final class CategoryViewController: UIViewController {
         label.text = "Привычки и события можно\nобъединить по смыслу"
         label.numberOfLines = 2
         label.textColor = .blackDay
+        label.isHidden = true
         label.textAlignment = .center
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -67,6 +74,13 @@ final class CategoryViewController: UIViewController {
         return button
     }()
     
+    // MARK: - Initialisation
+    
+    func initialize(viewModel: CategoryViewModel) {
+        self.viewModel = viewModel
+        bind()
+    }
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
@@ -74,6 +88,20 @@ final class CategoryViewController: UIViewController {
         configViews()
         configConstraints()
         checkForAvailableCategories()
+        try? viewModel?.fetchCategory()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        guard let categories = viewModel?.categories,
+              categories.isEmpty else { return }
+    }
+    
+    // MARK: Binding
+    private func bind() {
+        viewModel?.$categories.bind(action: { [weak self] _ in
+            self?.checkForAvailableCategories()
+        })
     }
     
     // MARK: - Actions
@@ -89,31 +117,28 @@ final class CategoryViewController: UIViewController {
     // MARK: - Private methods
     
     private func checkForAvailableCategories() {
-        try? fetchCategory()
         tableView.reloadData()
+        guard let category = viewModel?.categories else { return }
         if !category.isEmpty {
-            configTableView()
+            placeholderDisplaySwitch(isHiden: true)
             configThereAreCategories()
         } else {
-            configForCreateCategory()
+            placeholderDisplaySwitch(isHiden: false)
         }
     }
     
-    private func configTableView() {
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CategoryCell")
-        tableView.delegate = self
-        tableView.dataSource = self
-        //tableView.separatorColor = .backgroundDay
-        tableView.layer.cornerRadius = 16
-        tableView.backgroundColor = .none
-        tableView.layer.masksToBounds = true
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
+    private func placeholderDisplaySwitch(isHiden: Bool) {
+        mainStarImageStub.isHidden = isHiden
+        descriptionPlaceholderStub.isHidden = isHiden
     }
     
     private func configViews() {
+        tableView.delegate = self
+        tableView.dataSource = self
         view.backgroundColor = .whiteDay
         view.addSubview(habitLabel)
+        view.addSubview(mainStarImageStub)
+        view.addSubview(descriptionPlaceholderStub)
         view.addSubview(creatingHabitButton)
     }
     
@@ -121,6 +146,12 @@ final class CategoryViewController: UIViewController {
         NSLayoutConstraint.activate([
             habitLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             habitLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
+            mainStarImageStub.widthAnchor.constraint(equalToConstant: 80),
+            mainStarImageStub.heightAnchor.constraint(equalToConstant: 80),
+            mainStarImageStub.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            mainStarImageStub.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            descriptionPlaceholderStub.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            descriptionPlaceholderStub.topAnchor.constraint(equalTo: mainStarImageStub.bottomAnchor, constant: 8),
             creatingHabitButton.heightAnchor.constraint(equalToConstant: 60),
             creatingHabitButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             creatingHabitButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
@@ -137,66 +168,20 @@ final class CategoryViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: creatingHabitButton.topAnchor, constant: -38)
         ])
     }
-    
-    private func configForCreateCategory() {
-        view.addSubview(mainStarImageStub)
-        view.addSubview(descriptionPlaceholderStub)
-        NSLayoutConstraint.activate([
-            mainStarImageStub.widthAnchor.constraint(equalToConstant: 80),
-            mainStarImageStub.heightAnchor.constraint(equalToConstant: 80),
-            mainStarImageStub.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            mainStarImageStub.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            descriptionPlaceholderStub.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            descriptionPlaceholderStub.topAnchor.constraint(equalTo: mainStarImageStub.bottomAnchor, constant: 8)
-        ])
-    }
-    
-    private func roundingForCellsInATable(cellIndex: Int, numberOfLines: Int) -> CACornerMask {
-        switch (cellIndex, numberOfLines) {
-        case (0, 1):
-            return [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        case (0, _):
-            return [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        case (_, _) where cellIndex == numberOfLines - 1:
-            return [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        default:
-            return []
-        }
-    }
-    
-    private func separatorInsetForCell(index: Int) -> UIEdgeInsets {
-        let quantityCategory = category.count - 1
-        if index == quantityCategory {
-            return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
-        } else {
-            return UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        }
-    }
-}
-
-// MARK: - CategoryViewDelegate
-
-extension CategoryViewController: CategoryViewDelegate {
-    func updateData(nameCategory: String) {
-        try? createCategory(nameOfCategory: nameCategory)
-        checkForAvailableCategories()
-        tableView.reloadData()
-    }
 }
 
 // MARK: - UITableViewDelegate
 
 extension CategoryViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let editingIndexPath = dataStorege.loadIndexPathForCheckmark() {
+        if let editingIndexPath = viewModel?.loadIndexPathForCheckmark() {
             let previousSelectedCell = tableView.cellForRow(at: editingIndexPath)
             previousSelectedCell?.accessoryType = .none
         }
         let cell = tableView.cellForRow(at: indexPath)
         cell?.accessoryType = .checkmark
-        dataStorege.saveIndexPathForCheckmark(indexPath)
-        delegateIrregular?.updateSubitle(nameSubitle: category[indexPath.row])
-        delegateHabbit?.updateSubitle(nameSubitle: category[indexPath.row])
+        viewModel?.selectedCategoryForCheckmark(indexPath)
+        viewModel?.addingCategoryToCreate(indexPath)
         tableView.deselectRow(at: indexPath, animated: true)
         dismiss(animated: true)
     }
@@ -208,7 +193,7 @@ extension CategoryViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         let deleteAction = UIAction(title: "Удалить", attributes: .destructive) { [weak self] _ in
             guard let self = self else { return }
-            try? self.removeCategory(atIndex: indexPath.row)
+            try? self.viewModel?.removeCategory(atIndex: indexPath.row)
             self.checkForAvailableCategories()
         }
         let deleteMenu = UIMenu(title: "", children: [deleteAction])
@@ -222,59 +207,56 @@ extension CategoryViewController: UITableViewDelegate {
 
 extension CategoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return category.count
+        guard let count = viewModel?.categoriesCount() else { return 0 }
+        return count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-        let categoryName = category[indexPath.row]
-        cell.textLabel?.text = categoryName
+        guard let count = viewModel?.categoriesCount() else { return UITableViewCell() }
+        cell.textLabel?.text = viewModel?.categories[indexPath.row].title
         cell.textLabel?.textColor = .blackDay
         cell.backgroundColor = .backgroundDay
         cell.layer.masksToBounds = true
-        cell.layer.cornerRadius = 10
-        cell.separatorInset = separatorInsetForCell(index: indexPath.row)
-        cell.layer.maskedCorners = roundingForCellsInATable(cellIndex: indexPath.row, numberOfLines: category.count)
-        cell.accessoryType = indexPath == dataStorege.loadIndexPathForCheckmark() ? .checkmark : .none
+        cell.layer.cornerRadius = 16
+        cell.separatorInset = separatorInsetForCell(index: indexPath.row, numberOfLines: count)
+        cell.layer.maskedCorners = roundingForCellsInATable(cellIndex: indexPath.row, numberOfLines: count)
+        cell.accessoryType = indexPath == viewModel?.loadIndexPathForCheckmark() ? .checkmark : .none
         return cell
     }
 }
 
-// MARK: - CategoryStore
+// MARK: - ConfigForCell
 
 extension CategoryViewController {
-    private func fetchCategory() throws {
-        do {
-            let categories = try trackerCategoryStore.fetchAllCategories()
-            category = categories.compactMap { $0.titleCategory }
-        } catch {
-            throw StoreError.failedReading
+    func roundingForCellsInATable(cellIndex: Int, numberOfLines: Int) -> CACornerMask {
+        switch (cellIndex, numberOfLines) {
+        case (0, 1):
+            return [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        case (0, _):
+            return [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        case (_, _) where cellIndex == numberOfLines - 1:
+            return [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        default:
+            return []
         }
     }
     
-    private func createCategory(nameOfCategory: String) throws {
-        do {
-            let newCategory = TrackerCategory(title: nameOfCategory, trackers: [])
-            try trackerCategoryStore.createCategory(newCategory)
-        } catch {
-            throw StoreError.failedToWrite
-        }
-    }
-    
-    private func removeCategory(atIndex index: Int) throws {
-        let nameOfCategory = category[index]
-        do {
-            try trackerCategoryStore.deleteCategory(with: nameOfCategory)
-        } catch {
-            throw StoreError.failedActoionDelete
+    func separatorInsetForCell(index: Int, numberOfLines: Int) -> UIEdgeInsets {
+        let quantityCategory = numberOfLines - 1
+        if index == quantityCategory {
+            return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+        } else {
+            return UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         }
     }
 }
 
-// MARK: - TrackerStoreDelegate
+// MARK: - CreateCategoryViewDelegate
 
-extension CategoryViewController: TrackerCategoryStoreDelegate {
-    func didUpdateData(in store: TrackerCategoryStore) {
-        tableView.reloadData()
+extension CategoryViewController: CategoryViewModelDelegate {
+    func updateData(nameCategory: String) {
+        try? viewModel?.createCategory(nameOfCategory: nameCategory)
+        try? viewModel?.fetchCategory()
     }
 }

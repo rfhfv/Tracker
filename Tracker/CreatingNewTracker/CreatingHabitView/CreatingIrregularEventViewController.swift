@@ -290,7 +290,9 @@ extension CreatingIrregularEventViewController: UITableViewDelegate {
         switch indexPath.row {
         case 0:
             let categoryViewController = CategoryViewController()
-            categoryViewController.delegateIrregular = self
+            let categoryViewModel = CategoryViewModel()
+            categoryViewController.initialize(viewModel: categoryViewModel)
+            categoryViewModel.delegateIrregular = self
             let navigationController = UINavigationController(rootViewController: categoryViewController)
             present(navigationController, animated: true)
         default:
