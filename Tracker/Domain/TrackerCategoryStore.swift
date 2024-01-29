@@ -131,3 +131,4 @@ extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
         delegate?.didUpdateData(in: self)
     }
 }
+
