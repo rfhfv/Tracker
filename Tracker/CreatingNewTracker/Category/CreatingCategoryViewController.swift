@@ -8,11 +8,11 @@
 import UIKit
 
 final class CreatingCategoryViewController: UIViewController {
-    weak var delegate: CategoryViewDelegate?
+    weak var delegate: CategoryViewModelDelegate?
     private let categoryViewController = CategoryViewController()
     private let characterLimitInField = 38
     
-    //MARK: - UiElements
+    // MARK: - UiElements
     
     private lazy var habitLabel: UILabel = {
         let label = UILabel()

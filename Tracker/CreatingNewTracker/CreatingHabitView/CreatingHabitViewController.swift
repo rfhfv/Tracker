@@ -323,7 +323,9 @@ extension CreatingHabitViewController: UITableViewDelegate {
         switch indexPath.row {
         case 0:
             let categoryViewController = CategoryViewController()
-            categoryViewController.delegateHabbit = self
+            let categoryViewModel = CategoryViewModel()
+            categoryViewController.initialize(viewModel: categoryViewModel)
+            categoryViewModel.delegateHabbit = self
             let navigationController = UINavigationController(rootViewController: categoryViewController)
             present(navigationController, animated: true)
         case 1:
