@@ -260,4 +260,3 @@ extension CategoryViewController: CategoryViewModelDelegate {
         try? viewModel?.fetchCategory()
     }
 }
-
