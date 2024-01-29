@@ -424,4 +424,3 @@ extension CreatingIrregularEventViewController: UICollectionViewDelegateFlowLayo
                                                   verticalFittingPriority: .fittingSizeLevel)
     }
 }
-

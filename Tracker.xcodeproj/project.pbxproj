@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		843754A62B6800560046AF76 /* OnboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843754A52B6800560046AF76 /* OnboardViewController.swift */; };
-		843754A82B6800610046AF76 /* OnboardContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843754A72B6800610046AF76 /* OnboardContentViewController.swift */; };
-		843754AA2B6801870046AF76 /* ObservableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843754A92B6801870046AF76 /* ObservableValue.swift */; };
-		843754AC2B6802520046AF76 /* CategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843754AB2B6802520046AF76 /* CategoryViewModel.swift */; };
 		847720762B6043750063EE66 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847720752B6043750063EE66 /* AppDelegate.swift */; };
 		847720782B6043750063EE66 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847720772B6043750063EE66 /* SceneDelegate.swift */; };
 		8477207A2B6043750063EE66 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847720792B6043750063EE66 /* ViewController.swift */; };
@@ -55,10 +51,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		843754A52B6800560046AF76 /* OnboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardViewController.swift; sourceTree = "<group>"; };
-		843754A72B6800610046AF76 /* OnboardContentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardContentViewController.swift; sourceTree = "<group>"; };
-		843754A92B6801870046AF76 /* ObservableValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservableValue.swift; sourceTree = "<group>"; };
-		843754AB2B6802520046AF76 /* CategoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewModel.swift; sourceTree = "<group>"; };
 		847720722B6043750063EE66 /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		847720752B6043750063EE66 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		847720772B6043750063EE66 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -115,15 +107,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		843754A42B6800410046AF76 /* Onboard */ = {
-			isa = PBXGroup;
-			children = (
-				843754A52B6800560046AF76 /* OnboardViewController.swift */,
-				843754A72B6800610046AF76 /* OnboardContentViewController.swift */,
-			);
-			path = Onboard;
-			sourceTree = "<group>";
-		};
 		847720692B6043750063EE66 = {
 			isa = PBXGroup;
 			children = (
@@ -144,7 +127,6 @@
 			isa = PBXGroup;
 			children = (
 				847720832B6043770063EE66 /* Info.plist */,
-
 				847720CD2B617EB30063EE66 /* Resources */,
 				847720BB2B60466A0063EE66 /* Services */,
 				847720E32B66B9D60063EE66 /* Onboard */,
@@ -202,6 +184,7 @@
 				847720C42B6046B80063EE66 /* TextField.swift */,
 				847720CE2B617F010063EE66 /* UIColorMarshalling.swift */,
 				847720D02B617F0B0063EE66 /* StoreError.swift */,
+				847720EB2B66BAC20063EE66 /* ObservableValue.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -270,7 +253,6 @@
 				847720AB2B6045F50063EE66 /* CategoryViewController.swift */,
 				847720ED2B66F6480063EE66 /* CategoryViewModel.swift */,
 				8477209F2B6045C10063EE66 /* CreatingCategoryViewController.swift */,
-				843754AB2B6802520046AF76 /* CategoryViewModel.swift */,
 			);
 			path = Category;
 			sourceTree = "<group>";
@@ -373,7 +355,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-
+				847720EA2B66BA520063EE66 /* OnboardContentViewController.swift in Sources */,
 				847720B52B60462B0063EE66 /* CreatingTrackersModel.swift in Sources */,
 				847720B32B6046230063EE66 /* TrackerCategory.swift in Sources */,
 				847720AE2B6045FB0063EE66 /* CreatingIrregularEventViewController.swift in Sources */,
@@ -383,14 +365,14 @@
 				847720D12B617F0B0063EE66 /* StoreError.swift in Sources */,
 				847720A42B6045D10063EE66 /* TabBarController.swift in Sources */,
 				847720CF2B617F010063EE66 /* UIColorMarshalling.swift in Sources */,
-
+				847720EE2B66F6480063EE66 /* CategoryViewModel.swift in Sources */,
 				847720C32B6046AE0063EE66 /* Date.swift in Sources */,
 				847720BA2B6046630063EE66 /* DataStorege.swift in Sources */,
 				847720AA2B6045EE0063EE66 /* CreatingTableCell.swift in Sources */,
 				847720982B60459C0063EE66 /* SupplementaryView.swift in Sources */,
 				847720CA2B617E070063EE66 /* TrackerStore.swift in Sources */,
 				847720A62B6045DF0063EE66 /* CreatingHabitViewController.swift in Sources */,
-        
+				847720E82B66BA300063EE66 /* OnboardViewController.swift in Sources */,
 				8477209E2B6045B50063EE66 /* ScheduleViewController.swift in Sources */,
 				847720A02B6045C10063EE66 /* CreatingCategoryViewController.swift in Sources */,
 				847720A82B6045E70063EE66 /* CreatingNewTrackerViewController.swift in Sources */,
@@ -407,7 +389,7 @@
 				847720B12B60461C0063EE66 /* TrackerRecord.swift in Sources */,
 				847720AC2B6045F50063EE66 /* CategoryViewController.swift in Sources */,
 				847720782B6043750063EE66 /* SceneDelegate.swift in Sources */,
-
+				847720EC2B66BAC20063EE66 /* ObservableValue.swift in Sources */,
 				847720A22B6045C80063EE66 /* TrackersViewController.swift in Sources */,
 				8477209A2B6045A40063EE66 /* TrackerCell.swift in Sources */,
 				847720962B6045950063EE66 /* StatisticsViewController.swift in Sources */,
