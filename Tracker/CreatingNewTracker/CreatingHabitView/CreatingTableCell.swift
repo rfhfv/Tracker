@@ -8,7 +8,6 @@
 import UIKit
 
 final class CreatingTableCell: UITableViewCell {
-    
     // MARK: - UiElements
     
     private let stackView: UIStackView = {

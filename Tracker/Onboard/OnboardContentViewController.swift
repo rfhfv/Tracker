@@ -52,7 +52,7 @@ final class OnboardContentViewController: UIViewController {
         configConstraints()
     }
     
-    // MARK: - Actions
+    //MARK: - Actions
     
     @objc func didTapButton() {
         delegate?.didTapButton()

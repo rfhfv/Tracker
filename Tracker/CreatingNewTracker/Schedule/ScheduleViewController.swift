@@ -23,7 +23,7 @@ private enum DaysOfTheWeek: String, CaseIterable {
 
 final class ScheduleViewController: UIViewController {
     weak var delegate: CreatingHabitViewControllerDelegate?
-    private let dataStorege = DataStorege.shared
+    private let dataSorege = DataStorege.shared
     
     // MARK: - UiElements
     
@@ -64,7 +64,7 @@ final class ScheduleViewController: UIViewController {
     
     @objc
     func actionsForButton() {
-        guard let daysInAWeek = sortedDayInWeek(weekDayArray: dataStorege.loadDaysInAWeek()) else { return }
+        guard let daysInAWeek = sortedDayInWeek(weekDayArray: dataSorege.loadDaysInAWeek()) else { return }
         delegate?.updateDate(days: daysInAWeek)
         dismiss(animated: true)
     }
@@ -85,8 +85,10 @@ final class ScheduleViewController: UIViewController {
         tableView.register(ScheduleCell.self, forCellReuseIdentifier: "ScheduleCell")
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.backgroundColor = .whiteDay
         tableView.separatorColor = .grayYP
         tableView.layer.cornerRadius = 16
+        tableView.backgroundColor = .none
         tableView.layer.masksToBounds = true
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -106,29 +108,37 @@ final class ScheduleViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: scheduleLabel.bottomAnchor, constant: 30),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.bottomAnchor.constraint(equalTo: doneButton.topAnchor, constant: -70),
+            tableView.bottomAnchor.constraint(equalTo: doneButton.topAnchor, constant: -73),
             doneButton.heightAnchor.constraint(equalToConstant: 60),
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
         ])
     }
+    
+    private func separatorInsetForCell(index: Int) -> UIEdgeInsets {
+        if index == 6 {
+            return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+        } else {
+            return UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        }
+    }
 }
 
 // MARK: - ScheduleCellDelegate
 
 extension ScheduleViewController: ScheduleCellDelegate {
-    func didToogleSwitch(for day: String, switchActive: Bool) {
-        if switchActive {
-            dataStorege.saveDaysInAWeek(day)
+    func didToogleSwitch(for day: String, switchActiv: Bool) {
+        if switchActiv {
+            dataSorege.saveDaysInAWeek(day)
         } else {
             guard let indexDay = searchDayIndex(day) else { return }
-            dataStorege.removeDaysInAWeek(atIndex: indexDay)
+            dataSorege.removeDaysInAWeek(atIndex: indexDay)
         }
     }
     
     private func searchDayIndex(_ nameDay: String) -> Int? {
-        if let index = dataStorege.loadDaysInAWeek().firstIndex(where: { $0 == nameDay }) {
+        if let index = dataSorege.loadDaysInAWeek().firstIndex(where: { $0 == nameDay }) {
             return index
         } else {
             return nil
@@ -156,7 +166,8 @@ extension ScheduleViewController: UITableViewDataSource {
         else { fatalError() }
         cell.delegate = self
         let day: String = DaysOfTheWeek.allCases[indexPath.row].rawValue
-        let isSwitchOn = dataStorege.loadDaysInAWeek().contains(day)
+        let isSwitchOn = dataSorege.loadDaysInAWeek().contains(day)
+        cell.separatorInset = separatorInsetForCell(index: indexPath.row)
         cell.configureCell(with: day, isSwitchOn: isSwitchOn, cellIndex: indexPath.row, numberOfLines: DaysOfTheWeek.allCases.count)
         return cell
     }

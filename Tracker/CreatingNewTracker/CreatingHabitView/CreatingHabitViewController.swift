@@ -20,7 +20,12 @@ protocol CreatingHabitViewControllerDelegate: AnyObject {
 
 final class CreatingHabitViewController: UIViewController {
     weak var delegate: TrackerCreationDelegate?
-    private let dataStorege = DataStorege.shared
+    weak var delegateEdit: EditTrackerDelegate?
+    var numberOfDaysCompletedHabit: Int?
+    var editCategoryHabit: String?
+    var editTrackerHabit: Tracker?
+    private let analyticsService = AnalyticsService()
+    private let dataSorege = DataStorege.shared
     private let characterLimitInField = 38
     private var dateEvents = [Int]()
     private var isSelectedEmoji: IndexPath?
@@ -56,6 +61,15 @@ final class CreatingHabitViewController: UIViewController {
         trackerLabel.font = .systemFont(ofSize: 16, weight: .medium)
         trackerLabel.translatesAutoresizingMaskIntoConstraints = false
         return trackerLabel
+    }()
+    
+    private lazy var completedDaysLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        label.isHidden = true
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
     private lazy var nameTrackerTextField: UITextField = {
@@ -156,6 +170,13 @@ final class CreatingHabitViewController: UIViewController {
         configViews()
         configConstraints()
         clearDataStorege()
+        trackerEditing()
+        analyticsService.report(event: .open, params: ["Screen" : "CreatingHabit"])
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        analyticsService.report(event: .close, params: ["Screen" : "CreatingHabit"])
     }
     
     // MARK: - Actions
@@ -173,23 +194,93 @@ final class CreatingHabitViewController: UIViewController {
     @objc
     private func cancelCreation() {
         dismiss(animated: true)
+        analyticsService.report(event: .click, params: ["Screen" : "CreatingHabit", "Item" : Items.cancelCreation.rawValue])
     }
     
     @objc
     private func create() {
-        guard let text = nameTrackerTextField.text else { return }
-        guard let selectedEmojiIndexPath = isSelectedEmoji else { return }
-        guard let selectedColorIndexPath = isSelectedColor else { return }
-        let emoji = emojis[selectedEmojiIndexPath.row]
-        let color = colors[selectedColorIndexPath.row]
-        let newTracker = Tracker(id: UUID(), name: text, color: color, emoji: emoji, dateEvents: dateEvents)
+        guard let newTracker = collectingDataForTheTracker(newTracker: true) else { return }
         let categoryTracker = creatingTrackersModel[0].subTitleLabel
         delegate?.didCreateTracker(newTracker, category: categoryTracker)
+        analyticsService.report(event: .click, params: ["Screen" : "CreatingHabit", "Item" : Items.addTracker.rawValue])
         self.view.window?.rootViewController?.dismiss(animated: true) {
         }
     }
     
+    @objc
+    private func update() {
+        guard let newTracker = collectingDataForTheTracker(newTracker: false) else { return }
+        let categoryTracker = creatingTrackersModel[0].subTitleLabel
+        delegateEdit?.trackerUpdate(newTracker, category: categoryTracker)
+        analyticsService.report(event: .click, params: ["Screen" : "CreatingHabit", "Item" : Items.updateTracker.rawValue])
+        dismiss(animated: true)
+    }
+    
     // MARK: - Private methods
+    
+    private func collectingDataForTheTracker(newTracker: Bool) -> Tracker? {
+        guard let text = nameTrackerTextField.text,
+              let selectedEmojiIndexPath = isSelectedEmoji,
+              let selectedColorIndexPath = isSelectedColor else { return nil }
+        let emoji = emojis[selectedEmojiIndexPath.row]
+        let color = colors[selectedColorIndexPath.row]
+        if newTracker {
+            return Tracker(id: UUID(), name: text, color: color, emoji: emoji, dateEvents: dateEvents, isPinned: false)
+        } else {
+            guard let id = editTrackerHabit?.id else { return nil }
+            guard let isPinned = editTrackerHabit?.isPinned else { return nil }
+            return Tracker(id: id, name: text, color: color, emoji: emoji, dateEvents: dateEvents, isPinned: isPinned)
+        }
+    }
+    
+    private func trackerEditing() {
+        guard let daysLabel = numberOfDaysCompletedHabit else { return }
+        guard let trackerForEditing = editTrackerHabit else { return }
+        guard let categiryForEditing = editCategoryHabit else { return }
+        newHabitLabel.text = "Редактирование привычки"
+        completedDaysLabel.isHidden = false
+        creatingButton.setTitle("Сохранить", for: .normal)
+        creatingButton.addTarget(self, action: #selector(self.update), for: .touchUpInside)
+        completedDaysLabel.text = formatDaysText(forDays: daysLabel)
+        nameTrackerTextField.text = trackerForEditing.name
+        updateSubitle(nameSubitle: categiryForEditing)
+        convertToDateFormatterInDay(trackerForEditing.dateEvents ?? [])
+        if let emojiIndex = emojis.firstIndex(of: trackerForEditing.emoji) {
+            let emojieIndexPath = IndexPath(row: emojiIndex, section: 0)
+            collectionView.selectItem(at: emojieIndexPath, animated: false, scrollPosition: [])
+            collectionView.delegate?.collectionView?(collectionView, didSelectItemAt: emojieIndexPath)
+        }
+        if let colorIndex = colors.firstIndex(where: { UIColor.colorComparison(colorFromSet: $0, trackerColor: trackerForEditing.color) }) {
+            let colorIndexPath = IndexPath(row: colorIndex, section: 1)
+            collectionView.selectItem(at: colorIndexPath, animated: false, scrollPosition: [])
+            collectionView.delegate?.collectionView?(collectionView, didSelectItemAt: colorIndexPath)
+        }
+        updateCreatingButton()
+    }
+    
+    private func formatDaysText(forDays days: Int) -> String {
+        if days > 10 && days < 20 {
+            return "\(days) дней"
+        } else {
+            switch days % 10 {
+            case 1:
+                return "\(days) день"
+            case 2, 3, 4:
+                return "\(days) дня"
+            default:
+                return "\(days) дней"
+            }
+        }
+    }
+    
+    private func convertToDateFormatterInDay(_ indices: [Int]) {
+        let orderedDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+        let resultArray = indices.compactMap { (index: Int) -> String? in
+            guard (1...orderedDays.count).contains(index) else { return nil }
+            return orderedDays[index - 1]
+        }
+        updateDate(days: resultArray)
+    }
     
     private func updateCreatingButton() {
         let categoryForActivButtonHabbit = creatingTrackersModel[0].subTitleLabel
@@ -210,8 +301,8 @@ final class CreatingHabitViewController: UIViewController {
     }
     
     private func clearDataStorege() {
-        dataStorege.removeAllDaysInAWeek()
-        dataStorege.removeIndexPathForCheckmark()
+        dataSorege.removeAllDaysInAWeek()
+        dataSorege.removeIndexPathForCheckmark()
     }
     
     private func configViews() {
@@ -222,6 +313,7 @@ final class CreatingHabitViewController: UIViewController {
         view.addSubview(newHabitLabel)
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
+        contentView.addSubview(completedDaysLabel)
         contentView.addSubview(stackViewForTextField)
         contentView.addSubview(tableView)
         contentView.addSubview(collectionView)
@@ -230,6 +322,8 @@ final class CreatingHabitViewController: UIViewController {
     }
     
     private func configConstraints() {
+        let nameTrackerTextFieldConstant: CGFloat = editTrackerHabit == nil ? 28 : 106
+        let scrollHeightAnchor: CGFloat = editTrackerHabit == nil ? 32 : 102
         NSLayoutConstraint.activate([
             newHabitLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             newHabitLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
@@ -242,8 +336,11 @@ final class CreatingHabitViewController: UIViewController {
             contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
-            contentView.heightAnchor.constraint(equalToConstant: view.frame.height + 45),
-            nameTrackerTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
+            contentView.heightAnchor.constraint(equalToConstant: view.frame.height + scrollHeightAnchor),
+            completedDaysLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
+            completedDaysLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            completedDaysLabel.heightAnchor.constraint(equalToConstant: 38),
+            nameTrackerTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: nameTrackerTextFieldConstant),
             nameTrackerTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             nameTrackerTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             nameTrackerTextField.heightAnchor.constraint(equalToConstant: 75),
