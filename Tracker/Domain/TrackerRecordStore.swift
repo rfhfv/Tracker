@@ -8,11 +8,17 @@
 import UIKit
 import CoreData
 
-final class TrackerRecordStore {
+protocol TrackerRecordStoreDelegate: AnyObject {
+    func didUpdateData(in store: TrackerRecordStore)
+}
+
+final class TrackerRecordStore: NSObject {
+    weak var delegate: TrackerRecordStoreDelegate?
     private let context: NSManagedObjectContext
     
-    // MARK: Initialisation
-    convenience init() {
+    // MARK: - Initialisation
+    
+    convenience override init() {
         let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         self.init(context: context)
     }
@@ -21,7 +27,8 @@ final class TrackerRecordStore {
         self.context = context
     }
     
-    //MARK: - Methods
+    // MARK: - Methods
+    
     func addNewRecord(from trackerRecord: TrackerRecord) throws {
         guard let entity = NSEntityDescription.entity(forEntityName: "TrackerRecordCoreData", in: context) else {
             throw StoreError.failedToWrite
@@ -67,5 +74,13 @@ final class TrackerRecordStore {
         } catch {
             throw StoreError.failedReading
         }
+    }
+}
+
+// MARK: - NSFetchedResultsControllerDelegate
+
+extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        delegate?.didUpdateData(in: self)
     }
 }

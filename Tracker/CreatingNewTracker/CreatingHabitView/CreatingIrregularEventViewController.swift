@@ -15,7 +15,12 @@ protocol CreatingIrregularEventViewControllerDelegate: AnyObject {
 
 final class CreatingIrregularEventViewController: UIViewController {
     weak var delegate: TrackerCreationDelegate?
-    private let dataStorege = DataStorege.shared
+    weak var delegateEdit: EditTrackerDelegate?
+    var numberOfDaysCompletedIrregular: Int?
+    var editCategoryIrregular: String?
+    var editTrackerIrregular: Tracker?
+    private let analyticsService = AnalyticsService()
+    private let dataSorege = DataStorege.shared
     private let characterLimitInField = 38
     private var isSelectedEmoji: IndexPath?
     private var isSelectedColor: IndexPath?
@@ -49,6 +54,15 @@ final class CreatingIrregularEventViewController: UIViewController {
         trackerLabel.font = .systemFont(ofSize: 16, weight: .medium)
         trackerLabel.translatesAutoresizingMaskIntoConstraints = false
         return trackerLabel
+    }()
+    
+    private lazy var completedDaysLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        label.isHidden = true
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
     private lazy var nameTrackerTextField: UITextField = {
@@ -147,9 +161,16 @@ final class CreatingIrregularEventViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        dataStorege.removeIndexPathForCheckmark()
+        dataSorege.removeIndexPathForCheckmark()
         configViews()
         configConstraints()
+        trackerEditing()
+        analyticsService.report(event: .open, params: ["Screen" : "CreatingIrregularEvent"])
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        analyticsService.report(event: .close, params: ["Screen" : "CreatingIrregularEvent"])
     }
     
     // MARK: - Actions
@@ -166,24 +187,84 @@ final class CreatingIrregularEventViewController: UIViewController {
     
     @objc
     private func cancelCreation() {
+        analyticsService.report(event: .click, params: ["Screen" : "CreatingIrregularEvent", "Item" : Items.cancelCreation.rawValue])
         dismiss(animated: true)
     }
     
     @objc
     private func create() {
-        guard let text = nameTrackerTextField.text else { return }
-        guard let selectedEmojiIndexPath = isSelectedEmoji else { return }
-        guard let selectedColorIndexPath = isSelectedColor else { return }
-        let emoji = emojis[selectedEmojiIndexPath.row]
-        let color = colors[selectedColorIndexPath.row]
-        let newTracker = Tracker(id: UUID(), name: text, color: color, emoji: emoji, dateEvents: nil)
+        guard let newTracker = collectingDataForTheTracker(newTracker: true) else { return }
         let categoryTracker = creatingTrackersModel[0].subTitleLabel
         delegate?.didCreateTracker(newTracker, category: categoryTracker)
+        analyticsService.report(event: .click, params: ["Screen" : "CreatingIrregularEvent", "Item" : Items.addTracker.rawValue])
         self.view.window?.rootViewController?.dismiss(animated: true) {
         }
     }
     
+    @objc
+    private func update() {
+        guard let newTracker = collectingDataForTheTracker(newTracker: false) else { return }
+        let categoryTracker = creatingTrackersModel[0].subTitleLabel
+        delegateEdit?.trackerUpdate(newTracker, category: categoryTracker)
+        analyticsService.report(event: .click, params: ["Screen" : "CreatingIrregularEvent", "Item" : Items.updateTracker.rawValue])
+        dismiss(animated: true)
+    }
+    
     // MARK: - Private methods
+    
+    private func collectingDataForTheTracker(newTracker: Bool) -> Tracker? {
+        guard let text = nameTrackerTextField.text,
+              let selectedEmojiIndexPath = isSelectedEmoji,
+              let selectedColorIndexPath = isSelectedColor else { return nil }
+        let emoji = emojis[selectedEmojiIndexPath.row]
+        let color = colors[selectedColorIndexPath.row]
+        if newTracker {
+            return Tracker(id: UUID(), name: text, color: color, emoji: emoji, dateEvents: nil, isPinned: false)
+        } else {
+            guard let id = editTrackerIrregular?.id else { return nil }
+            guard let isPinned = editTrackerIrregular?.isPinned else { return nil }
+            return Tracker(id: id, name: text, color: color, emoji: emoji, dateEvents: nil, isPinned: isPinned)
+        }
+    }
+    
+    private func trackerEditing() {
+        guard let daysLabel = numberOfDaysCompletedIrregular else { return }
+        guard let trackerForEditing = editTrackerIrregular else { return }
+        guard let categiryForEditing = editCategoryIrregular else { return }
+        newHabitLabel.text = "Редактирование привычки"
+        completedDaysLabel.isHidden = false
+        creatingButton.setTitle("Сохранить", for: .normal)
+        creatingButton.addTarget(self, action: #selector(self.update), for: .touchUpInside)
+        completedDaysLabel.text = formatDaysText(forDays: daysLabel)
+        nameTrackerTextField.text = trackerForEditing.name
+        updateSubitle(nameSubitle: categiryForEditing)
+        if let emojiIndex = emojis.firstIndex(of: trackerForEditing.emoji) {
+            let emojieIndexPath = IndexPath(row: emojiIndex, section: 0)
+            collectionView.selectItem(at: emojieIndexPath, animated: false, scrollPosition: [])
+            collectionView.delegate?.collectionView?(collectionView, didSelectItemAt: emojieIndexPath)
+        }
+        if let colorIndex = colors.firstIndex(where: { UIColor.colorComparison(colorFromSet: $0, trackerColor: trackerForEditing.color) }) {
+            let colorIndexPath = IndexPath(row: colorIndex, section: 1)
+            collectionView.selectItem(at: colorIndexPath, animated: false, scrollPosition: [])
+            collectionView.delegate?.collectionView?(collectionView, didSelectItemAt: colorIndexPath)
+        }
+        updateCreatingButton()
+    }
+    
+    private func formatDaysText(forDays days: Int) -> String {
+        if days > 10 && days < 20 {
+            return "\(days) дней"
+        } else {
+            switch days % 10 {
+            case 1:
+                return "\(days) день"
+            case 2, 3, 4:
+                return "\(days) дня"
+            default:
+                return "\(days) дней"
+            }
+        }
+    }
     
     private func updateCreatingButton() {
         let categoryForActivButton = creatingTrackersModel[0].subTitleLabel
@@ -209,6 +290,7 @@ final class CreatingIrregularEventViewController: UIViewController {
         view.addSubview(newHabitLabel)
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
+        contentView.addSubview(completedDaysLabel)
         contentView.addSubview(stackViewForTextField)
         contentView.addSubview(tableView)
         contentView.addSubview(collectionView)
@@ -217,6 +299,8 @@ final class CreatingIrregularEventViewController: UIViewController {
     }
     
     private func configConstraints() {
+        let nameTrackerTextFieldConstant: CGFloat = editTrackerIrregular == nil ? 28 : 106
+        let scrollHeightAnchor: CGFloat = editTrackerIrregular == nil ? 0 : 30
         NSLayoutConstraint.activate([
             newHabitLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             newHabitLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
@@ -229,8 +313,11 @@ final class CreatingIrregularEventViewController: UIViewController {
             contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
-            contentView.heightAnchor.constraint(equalToConstant: view.frame.height),
-            nameTrackerTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
+            contentView.heightAnchor.constraint(equalToConstant: view.frame.height + scrollHeightAnchor),
+            completedDaysLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
+            completedDaysLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            completedDaysLabel.heightAnchor.constraint(equalToConstant: 38),
+            nameTrackerTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: nameTrackerTextFieldConstant),
             nameTrackerTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             nameTrackerTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             nameTrackerTextField.heightAnchor.constraint(equalToConstant: 75),
