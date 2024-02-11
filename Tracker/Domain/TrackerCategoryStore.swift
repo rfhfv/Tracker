@@ -48,7 +48,6 @@ final class TrackerCategoryStore: NSObject {
 // MARK: - Category management
 
 extension TrackerCategoryStore {
-    
     // MARK: - Methods
     
     func createCategory(_ category: TrackerCategory) throws {
@@ -85,7 +84,6 @@ extension TrackerCategoryStore {
 // MARK: - Creating trackers in categories
 
 extension TrackerCategoryStore {
-    
     // MARK: - Methods
     
     func createCategoryAndTracker(tracker: Tracker, with titleCategory: String) throws {

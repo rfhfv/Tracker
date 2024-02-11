@@ -1,10 +1,10 @@
 /* 
- Localizable.strings
- Tracker
- 
- Created by admin on 06.02.2024.
- 
- */
+  Localizable.strings
+  Tracker
+
+  Created by admin on 06.02.2024.
+  
+*/
 
 "trackerTitle" = "Trackers";
 "statisticsTitle" = "Statistics";

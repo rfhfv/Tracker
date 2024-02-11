@@ -11,7 +11,7 @@ protocol ContentViewControllerDelegate: AnyObject {
     func didTapButton()
 }
 
-// MARK: - OnboardViewController
+// MARK: - OnboardingViewController
 
 final class OnboardViewController: UIPageViewController {
     private let dataStorage = DataStorege.shared

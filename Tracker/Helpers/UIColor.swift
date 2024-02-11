@@ -54,4 +54,3 @@ extension UIColor {
         abs(alpha1 - alpha2) < threshold
     }
 }
-

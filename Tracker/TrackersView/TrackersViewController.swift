@@ -211,12 +211,12 @@ final class TrackersViewController: UIViewController {
     private func placeholderDisplaySwitch(isHidden: Bool) {
         placeholderView.isHidden = isHidden
         collectionView.isHidden = !isHidden
-        filterButton.isHidden = !isHidden
+        filterButton.isHidden = false
     }
     
     private func configPlaceholderStub() {
         let searchText = searchBar.text ?? ""
-        if visibleCategories.isEmpty && !categories.isEmpty || !searchText.isEmpty{
+        if visibleCategories.isEmpty && !categories.isEmpty && !searchText.isEmpty {
             searchMainPlaceholderStub.text = NSLocalizedString("searchErrorStub", comment: "searchErrorStub")
             mainImageStub.image = UIImage(named: "nothingFoundIcon")
         } else {

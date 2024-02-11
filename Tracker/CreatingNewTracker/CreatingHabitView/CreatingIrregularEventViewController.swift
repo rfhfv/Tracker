@@ -29,9 +29,9 @@ final class CreatingIrregularEventViewController: UIViewController {
         CreatingTrackersModel(titleLabelText: "Категория", subTitleLabel: "")
     ]
     private let emojis = [
-        "🙂", "😻", "🐙", "🥰", "❤️", "😱",
+        "🙂", "😻", "🌺", "🐶", "❤️", "😱",
         "😇", "😡", "🥶", "🤔", "🙌", "🍔",
-        "🥦", "🏓", "🚗", "⛔", "👨🏻‍💻", "🥂"
+        "🥦", "🏓", "🥇", "🎸", "🏝", "😪"
     ]
     
     // MARK: - UiElements
