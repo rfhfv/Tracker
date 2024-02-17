@@ -11,10 +11,11 @@ protocol ContentViewControllerDelegate: AnyObject {
     func didTapButton()
 }
 
-// MARK: - OnboardViewController
+// MARK: - OnboardingViewController
 
 final class OnboardViewController: UIPageViewController {
     private let dataStorage = DataStorege.shared
+    private let analyticsService = AnalyticsService()
     private lazy var pageControl: UIPageControl = {
         let pageControl = UIPageControl()
         pageControl.currentPageIndicatorTintColor = .blackDay
@@ -58,6 +59,7 @@ final class OnboardViewController: UIPageViewController {
         super.viewDidLoad()
         configViews()
         configConstraints()
+        analyticsService.report(event: .open, params: ["Screen" : "Onboarding"])
     }
     
     // MARK: - Actions
