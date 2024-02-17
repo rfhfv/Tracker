@@ -18,6 +18,7 @@ extension UIColor {
     static var grayYP: UIColor { UIColor(named: "YP Gray")! }
     static var blueYP: UIColor { UIColor(named: "YP Blue")! }
     static var redYP: UIColor { UIColor(named: "YP Red")! }
+    static var clearYP: UIColor { UIColor(named: "YP Clear")! }
     
     static let colorSelection: [UIColor] = [
         UIColor(named: "Color selection 1") ?? #colorLiteral(red: 1, green: 0.3956416845, blue: 0.3553284407, alpha: 1),

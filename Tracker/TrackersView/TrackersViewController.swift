@@ -281,7 +281,7 @@ final class TrackersViewController: UIViewController {
         let datePickerConstraint = NSLayoutConstraint(item: datePicker, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: 100.0)
         navigationItem.leftBarButtonItem = addTrackerBarButtonItem
         navigationItem.rightBarButtonItems = [datePickerBarButtonItem]
-        navigationBar.barTintColor = .whiteDay
+        navigationBar.barTintColor = .clearYP
         navigationBar.shadowImage = UIImage()
         navigationBar.setItems([navigationItem], animated: false)
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
