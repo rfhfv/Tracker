@@ -1,5 +1,3 @@
-# ТЗ мобильного приложения для трекинга привычек
-
 # Ссылки
 
 [Дизайн Figma](https://www.figma.com/design/owAO4CAPTJdpM1BZU5JHv7/Tracker)
