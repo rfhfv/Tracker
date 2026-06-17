@@ -33,7 +33,8 @@ final class TrackerCategoryStore: NSObject {
         return controller
     }()
     
-    // MARK: Initialisation
+    // MARK: - Initialisation
+    
     convenience override init() {
         let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         self.init(context: context)
@@ -47,7 +48,6 @@ final class TrackerCategoryStore: NSObject {
 // MARK: - Category management
 
 extension TrackerCategoryStore {
-    
     // MARK: - Methods
     
     func createCategory(_ category: TrackerCategory) throws {
@@ -84,23 +84,7 @@ extension TrackerCategoryStore {
 // MARK: - Creating trackers in categories
 
 extension TrackerCategoryStore {
-    
-    //MARK: - Methods
-    
-    func decodingCategory(from trackerCategoryCoreData: TrackerCategoryCoreData) throws -> TrackerCategory? {
-        guard let title = trackerCategoryCoreData.titleCategory else {
-            throw StoreError.failedReading
-        }
-        guard let trackers = trackerCategoryCoreData.trackers else {
-            throw StoreError.failedReading
-        }
-        return TrackerCategory(title: title, trackers: trackers.compactMap { coreDataTracker -> Tracker? in
-            if let coreDataTracker = coreDataTracker as? TrackerCoreData {
-                return try? trackerStore.decodingTrackers(from: coreDataTracker)
-            }
-            return nil
-        })
-    }
+    // MARK: - Methods
     
     func createCategoryAndTracker(tracker: Tracker, with titleCategory: String) throws {
         guard let trackerCoreData = try trackerStore.addNewTracker(from: tracker) else {
@@ -115,7 +99,22 @@ extension TrackerCategoryStore {
         try context.save()
     }
     
-    //MARK: - Private methods
+    func decodingCategory(from trackerCategoryCoreData: TrackerCategoryCoreData) throws -> TrackerCategory {
+        guard let title = trackerCategoryCoreData.titleCategory else {
+            throw StoreError.failedReading
+        }
+        guard let trackers = trackerCategoryCoreData.trackers else {
+            throw StoreError.failedReading
+        }
+        return TrackerCategory(title: title, trackers: trackers.compactMap { coreDataTracker -> Tracker? in
+            if let coreDataTracker = coreDataTracker as? TrackerCoreData {
+                return try? trackerStore.decodingTrackers(from: coreDataTracker)
+            }
+            return nil
+        })
+    }
+    
+    // MARK: - Private methods
     
     private func fetchCategory(with title: String) throws -> TrackerCategoryCoreData? {
         let request = fetchedResultController.fetchRequest

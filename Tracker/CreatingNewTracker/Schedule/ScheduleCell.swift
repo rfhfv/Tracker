@@ -8,13 +8,13 @@
 import UIKit
 
 protocol ScheduleCellDelegate: AnyObject {
-    func didToogleSwitch(for day: String, switchActive: Bool)
+    func didToogleSwitch(for day: String, switchActiv: Bool)
 }
 
 final class ScheduleCell: UITableViewCell {
     weak var delegate: ScheduleCellDelegate?
     
-    // MARK: - UIElements
+    // MARK: - UiElements
     
     private lazy var scheduleLabel: UILabel = {
         let label = UILabel()
@@ -41,7 +41,6 @@ final class ScheduleCell: UITableViewCell {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scheduleLabel)
         view.addSubview(switchDay)
-        view.addSubview(switchDay)
         NSLayoutConstraint.activate([
             scheduleLabel.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 16),
             scheduleLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -58,6 +57,7 @@ final class ScheduleCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.selectionStyle = .none
+        self.backgroundColor = .whiteDay
         configViews()
         configConstraints()
     }
@@ -71,9 +71,9 @@ final class ScheduleCell: UITableViewCell {
     @objc func switchAction(_ sender: UISwitch) {
         guard let nameDay = scheduleLabel.text else { return }
         if switchDay.isOn {
-            delegate?.didToogleSwitch(for: nameDay, switchActive: true)
+            delegate?.didToogleSwitch(for: nameDay, switchActiv: true)
         } else {
-            delegate?.didToogleSwitch(for: nameDay, switchActive: false)
+            delegate?.didToogleSwitch(for: nameDay, switchActiv: false)
         }
     }
     
@@ -85,11 +85,11 @@ final class ScheduleCell: UITableViewCell {
         roundingForCellsInATable(cellIndex: cellIndex, numberOfLines: numberOfLines)
     }
     
-    // MARK: - Privatr methods
+    // MARK: - Private methods
     
     private func roundingForCellsInATable(cellIndex: Int, numberOfLines: Int) {
         switch (cellIndex, numberOfLines) {
-        case (0,1):
+        case (0, 1):
             uiView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         case (0, _):
             uiView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]

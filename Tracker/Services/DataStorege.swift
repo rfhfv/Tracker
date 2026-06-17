@@ -39,7 +39,6 @@ extension DataStorege {
         guard let selectedRow = defaults.value(forKey: indexPathForCheckmark) as? Int else {
             return nil
         }
-        
         return IndexPath(row: selectedRow, section: 0)
     }
     

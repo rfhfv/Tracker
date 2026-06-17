@@ -23,15 +23,20 @@ final class TabBarController: UITabBarController {
     // MARK: - Private methods
     
     private func generateTabBar() {
+        let trackerViewController = TrackersViewController()
+        let statisticsViewController = StatisticsViewController()
+        let statisticsViewModel = StatisticsViewModel()
+        statisticsViewController.initialize(viewModel: statisticsViewModel)
+        trackerViewController.delegateStatistic = statisticsViewModel
         viewControllers = [
             generateVC(
-                viewController: TrackersViewController(),
-                title: "Трекеры",
+                viewController: trackerViewController,
+                title: NSLocalizedString("trackerTitle", comment: "trackerTitle"),
                 image: UIImage(named: "recordIcon")
             ),
             generateVC(
-                viewController: StatisticsViewController(),
-                title: "Статистика",
+                viewController: statisticsViewController,
+                title: NSLocalizedString("statisticsTitle", comment: "statisticsTitle"),
                 image: UIImage(named: "statisticsIcon")
             )
         ]
@@ -43,18 +48,16 @@ final class TabBarController: UITabBarController {
         tabBar.clipsToBounds = true
     }
     
-    private func generateVC(viewController: UIViewController, title: String, image: UIImage?) ->
-    UIViewController {
+    private func generateVC(viewController: UIViewController, title: String, image: UIImage?) -> UIViewController {
         viewController.tabBarItem.title = title
         viewController.tabBarItem.image = image
         return viewController
     }
     
-    private func tabBarAppearance() {
+    private func tabBarAppearance(){
         let tabBarAppearance: UITabBarAppearance = UITabBarAppearance()
-        tabBarAppearance.configureWithOpaqueBackground()
+        tabBarAppearance.configureWithDefaultBackground()
         tabBar.standardAppearance = tabBarAppearance
     }
 }
-
 

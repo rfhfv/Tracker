@@ -9,7 +9,7 @@ import UIKit
 
 class SupplementaryView: UICollectionReusableView {
     
-    // MARK: - UIElements
+    // MARK: - UiElements
     
     let titleLabel: UILabel = {
         let label = UILabel()

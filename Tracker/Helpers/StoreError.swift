@@ -13,4 +13,6 @@ enum StoreError: Error {
     case failedDecoding
     case failedGettingTitle
     case failedActoionDelete
+    case failedActoionUpdate
+    case trackerNotFound
 }

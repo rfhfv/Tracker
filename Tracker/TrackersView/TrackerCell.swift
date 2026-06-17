@@ -5,7 +5,6 @@
 //  Created by admin on 25.12.2023.
 //
 
-
 import UIKit
 
 protocol TrackerCellDelegate: AnyObject {
@@ -20,7 +19,7 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - UiElements
     
-    let backgroundCellView: UIView = {
+    lazy var backgroundCellView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -28,7 +27,7 @@ final class TrackerCell: UICollectionViewCell {
         return view
     }()
     
-    private let emojiLabel: UILabel = {
+    private lazy var emojiLabel: UILabel = {
         let label = UILabel()
         label.backgroundColor = .white.withAlphaComponent(0.3)
         label.textAlignment = .center
@@ -39,7 +38,7 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
     
-    private let descriptionLabel: UILabel = {
+    private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 2
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
@@ -48,7 +47,15 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
     
-    private let daysCounterLabel: UILabel = {
+    private lazy var pinnedImage: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "pinnedIcon")
+        imageView.isHidden = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var daysCounterLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         label.textColor = .blackDay
@@ -96,6 +103,7 @@ final class TrackerCell: UICollectionViewCell {
         accomplishedButton.backgroundColor = tracker.color
         descriptionLabel.text = tracker.name
         emojiLabel.text = tracker.emoji
+        pinnedImage.isHidden = !tracker.isPinned
         self.trackerId = tracker.id
     }
     
@@ -108,18 +116,8 @@ final class TrackerCell: UICollectionViewCell {
     // MARK: - Private methods
     
     private func formatDaysText(forDays days: Int) -> String {
-        if days > 10 && days < 20 {
-            return "\(days) дней"
-        } else {
-            switch days % 10 {
-            case 1:
-                return "\(days) день"
-            case 2, 3, 4:
-                return "\(days) дня"
-            default:
-                return "\(days) дней"
-            }
-        }
+        let daysCounter = String.localizedStringWithFormat(NSLocalizedString("numberOfDay", comment: "numberOfDay"), days)
+        return daysCounter
     }
     
     private func updatePlusButton(trackerCompleted: Bool) {
@@ -136,6 +134,7 @@ final class TrackerCell: UICollectionViewCell {
         contentView.addSubview(accomplishedButton)
         backgroundCellView.addSubview(emojiLabel)
         backgroundCellView.addSubview(descriptionLabel)
+        backgroundCellView.addSubview(pinnedImage)
     }
     
     private func setupConstraints() {
@@ -151,6 +150,10 @@ final class TrackerCell: UICollectionViewCell {
             descriptionLabel.leadingAnchor.constraint(equalTo: backgroundCellView.leadingAnchor, constant: 12),
             descriptionLabel.trailingAnchor.constraint(equalTo: backgroundCellView.trailingAnchor, constant: -12),
             descriptionLabel.bottomAnchor.constraint(equalTo: backgroundCellView.bottomAnchor, constant: -12),
+            pinnedImage.topAnchor.constraint(equalTo: backgroundCellView.topAnchor, constant: 12),
+            pinnedImage.trailingAnchor.constraint(equalTo: backgroundCellView.trailingAnchor, constant: -12),
+            pinnedImage.heightAnchor.constraint(equalToConstant: 12),
+            pinnedImage.widthAnchor.constraint(equalToConstant: 8),
             daysCounterLabel.topAnchor.constraint(equalTo: backgroundCellView.bottomAnchor, constant: 16),
             daysCounterLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
             accomplishedButton.topAnchor.constraint(equalTo: backgroundCellView.bottomAnchor, constant: 8),
